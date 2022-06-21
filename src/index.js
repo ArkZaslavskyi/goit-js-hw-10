@@ -2,15 +2,11 @@ import './css/styles.css';
 import debounce from 'lodash.debounce';
 import { Notify } from 'notiflix/build/notiflix-notify-aio';
 
+import { fetchCountries } from './js/fetchCountries';
 import { createCountryListMarkup } from './js/createCountryListMarkup';
 import { createCountryInfoMarkup } from './js/createCountryInfoMarkup';
 
 const DEBOUNCE_DELAY = 300;
-
-const webRequest = {
-    link: 'https://restcountries.com/v3.1/name',
-    options: 'name,capital,population,languages,flags',
-}
 
 const refs = {
     input: document.querySelector('#search-box'),
@@ -23,14 +19,22 @@ refs.input.addEventListener('input', debounce(evt => onSearchInput(evt), DEBOUNC
 function onSearchInput(evt) {
     evt.preventDefault();
 
-    const value = evt.target.value;
+    const value = evt.target.value.trim();
 
     if (!value) {
         clearMarkup();
         return;
     }
 
-    fetchCountries(value);
+    fetchCountries(value)
+        .then(showCountries)
+        .catch(error => {
+            if (error.message === '404') {
+                Notify.failure('Oops, there is no country with that name');
+            } else {
+                Notify.failure(error);
+            };
+    });
 }
 
 function clearMarkup() {
@@ -38,24 +42,6 @@ function clearMarkup() {
     refs.countryInfo.innerHTML = "";
 }
 //
-function fetchCountries(restCountry) {
-        return fetch(`${webRequest.link}/${restCountry}?fields=${webRequest.options}`)
-        .then(response => {
-            if (!response.ok) {
-                throw Error(response.status);
-            }
-            return response.json();
-        })
-        .then(countriesInfo => showCountries(countriesInfo))
-        .catch(error => {
-            if (error = 404) {
-                Notify.failure('Oops, there is no country with that name');
-            } else {
-                Notify.failure(error);
-            };
-        });
-};
-
 function showCountries(countries) {
     // получили массив объектов стран
 
