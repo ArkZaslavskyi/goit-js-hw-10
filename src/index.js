@@ -28,13 +28,7 @@ function onSearchInput(evt) {
 
     fetchCountries(value)
         .then(showCountries)
-        .catch(error => {
-            if (error.message === '404') {
-                Notify.failure('Oops, there is no country with that name');
-            } else {
-                Notify.failure(error);
-            };
-    });
+        .catch(haveNoCountries);
 }
 
 function clearMarkup() {
@@ -44,25 +38,28 @@ function clearMarkup() {
 //
 function showCountries(countries) {
     // получили массив объектов стран
-
     clearMarkup(); // очистка разметки
-    
     const amount = countries.length; // кол-во стран
-
-    if (amount > 10) {
     // number of countries > 10
+    if (amount > 10) {
         Notify.info('Too many matches found. Please enter a more specific name.');
         return;
     };
-
-    if (amount > 1) {
     // number of countries [2..10]
+    if (amount > 1) {
         refs.countryList.innerHTML = createCountryListMarkup(countries);
         return;
     };
-
     // 1 country
     refs.countryInfo.innerHTML = createCountryInfoMarkup(countries[0]);
     return;
+}
+
+function haveNoCountries(error) {
+    if (error.message === '404') {
+        Notify.failure('Oops, there is no country with that name');
+    } else {
+        Notify.failure(error);
+    };
 }
 
